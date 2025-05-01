@@ -1,13 +1,20 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Import useLocation to highlight active link
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material'; // Using MUI components for a simple bar
+import { logout } from '../utils/auth'; // Import the logout utility function
 
 const NavBar = () => {
   const location = useLocation(); // Get current location to style active link
+  const navigate = useNavigate(); // Get navigate function
 
   // Helper function to check if a link is active
   const isActive = (pathname) => {
     return location.pathname === pathname;
+  };
+
+  const handleLogout = () => {
+    logout(); // Call the logout utility to remove the token
+    navigate('/'); // Redirect to the login page (root path)
   };
 
   return (
@@ -17,7 +24,7 @@ const NavBar = () => {
           Agent Dashboard
         </Typography>
         <Box>
-          {/* Use Button with component={Link} for navigation */}
+          {/* Navigation Links */}
           <Button
             color="inherit"
             component={Link}
@@ -50,16 +57,11 @@ const NavBar = () => {
           >
             APIs
           </Button>
-          {/* You might want to add a Logout button here */}
-          {/*
-          <Button color="inherit" onClick={() => {
-              // Implement logout logic here (e.g., clear localStorage, navigate to login)
-              localStorage.removeItem('token'); // Example logout
-              window.location.href = '/'; // Simple redirect after logout
-          }}>
+
+          {/* Logout Button */}
+          <Button color="inherit" onClick={handleLogout}> {/* Use handleLogout function */}
             Logout
           </Button>
-          */}
         </Box>
       </Toolbar>
     </AppBar>
