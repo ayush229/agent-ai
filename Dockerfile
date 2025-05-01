@@ -18,6 +18,7 @@ COPY . .
 
 # Build the React application
 # This command runs your build script defined in package.json
+# Make sure your package.json build script is compatible with Unix shells (e.g., uses NODE_OPTIONS=... command)
 RUN npm run build
 
 # --- Stage 2: Runner ---
@@ -27,16 +28,17 @@ FROM nginx:alpine
 # Copy the built files from the builder stage into the Nginx default public directory
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy a custom nginx configuration if needed (optional)
+# --- IMPORTANT PORT NOTE ---
+# Nginx by default listens on port 80. If you need it to listen on 8080,
+# you must provide a custom nginx.conf file that includes 'listen 8080;'
+# and copy it into the container using a line like:
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
+# If you are NOT using a custom config, Nginx is still listening on 80.
+# If you truly need 8080, ensure your nginx.conf reflects that.
+# If you don't need 8080 and default 80 is fine, change EXPOSE back to 80.
 
-# Expose port 80 (the default for Nginx)
-EXPOSE 80
+# Expose port 8080 (Ensure this matches the port Nginx is listening on inside the container)
+EXPOSE 8080
 
 # Command to run Nginx
 CMD ["nginx", "-g", "daemon off;"]
-
-# --- Optional: For Development/Debugging (Less common for production deployment) ---
-# If you wanted a Dockerfile for local development with hot-reloading,
-# it would look very different, primarily using the node image and running npm start.
-# The above is for production build and serving.
