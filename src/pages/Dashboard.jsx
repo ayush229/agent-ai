@@ -42,7 +42,7 @@ const DashboardPage = () => {
   const fetchAgents = async () => {
     setLoading(true);
     try {
-      // Ensure your backend's /agents endpoint returns the unique_code
+      // Ensure your backend's /agents endpoint returns agent objects with an 'agent_id' property
       const response = await axios.get(
         "https://web-scraper-api-production-fbd4.up.railway.app/agents",
         {
@@ -51,7 +51,7 @@ const DashboardPage = () => {
           },
         }
       );
-      // Assuming response.data.agents contains objects with unique_code, agent_name, urls
+      // Assuming response.data.agents contains objects with agent_id, agent_name, urls
       setAgents(response.data.agents);
     } catch (error) {
       console.error("Error fetching agents:", error);
@@ -61,20 +61,20 @@ const DashboardPage = () => {
   };
 
   const handleEdit = (agent) => {
-    // Ensure agent object includes 'urls' as an array and 'unique_code' as agent_id for dialog logic
+    // Ensure agent object includes 'urls' as an array and 'agent_id' for dialog logic
     setSelectedAgent(agent);
     // Assuming agent.urls is an array for joining
     setNewUrls(Array.isArray(agent.urls) ? agent.urls.join(",") : "");
     setOpenDialog(true);
   };
 
-  const handleDelete = async (agentUniqueCode) => {
+  const handleDelete = async (agentIdToDelete) => { // Renamed parameter for clarity
     // Confirmation dialog before deleting is recommended
     if (window.confirm("Are you sure you want to delete this agent?")) {
         try {
-          // Assuming your backend delete endpoint uses the unique_code as the identifier
+          // Assuming your backend delete endpoint uses the agent_id as the identifier
           await axios.delete(
-            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentUniqueCode}`, // <-- Use unique_code for DELETE request
+            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentIdToDelete}`, // Use the agentId (unique code) for DELETE request
             {
               headers: {
                 Authorization: getAuthHeader(),
@@ -95,9 +95,9 @@ const DashboardPage = () => {
     if (!selectedAgent) return; // Should not happen if dialog is open correctly
 
     try {
-      // Assuming your backend update endpoint uses the unique_code and expects urls string
+      // Assuming your backend update endpoint uses the agent_id and expects urls string
       const response = await axios.put(
-        `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.unique_code}`, // <-- Use unique_code for PUT request
+        `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.agent_id}`, // <--- Use selectedAgent.agent_id for PUT request
         {
           url: newUrls, // Backend expects urls string (comma-separated)
         },
@@ -153,8 +153,8 @@ const DashboardPage = () => {
       ) : (
         <Grid container spacing={3}> {/* Increased spacing */}
           {agents.map((agent) => (
-            // Make sure your backend returns agent objects with a 'unique_code' property
-            <Grid item xs={12} sm={6} md={4} key={agent.unique_code}> {/* Use unique_code as key */}
+            // Ensure your backend returns agent objects with a 'agent_id' property and it's used as the key
+            <Grid item xs={12} sm={6} md={4} key={agent.agent_id}> {/* Use agent.agent_id as key */}
               <Paper elevation={3} sx={{ p: 3 }}> {/* Increased padding */}
                 <Typography variant="h6" gutterBottom>{agent.agent_name}</Typography> {/* Added bottom margin */}
 
@@ -163,10 +163,12 @@ const DashboardPage = () => {
                     <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>
                         Code:
                     </Typography>
+                    {/* Display the agent_id */}
                     <Typography variant="body2" sx={{ flexGrow: 1, overflowWrap: 'break-word' }}>
-                         {agent.unique_code} {/* Display the unique code */}
+                         {agent.agent_id}
                     </Typography>
-                    <CopyToClipboard text={agent.unique_code} onCopy={handleCopySuccess}>
+                    {/* Copy the agent_id to clipboard */}
+                    <CopyToClipboard text={agent.agent_id} onCopy={handleCopySuccess}>
                         <IconButton size="small" aria-label="copy unique code">
                             <ContentCopyIcon fontSize="small" />
                         </IconButton>
@@ -185,11 +187,12 @@ const DashboardPage = () => {
                 </List>
 
                 <Box display="flex" justifyContent="flex-end" mt={2}> {/* Align buttons to the right, add top margin */}
+                  {/* Pass the whole agent object to handleEdit to populate dialog */}
                   <IconButton onClick={() => handleEdit(agent)} aria-label="edit agent">
                     <Edit />
                   </IconButton>
-                  {/* Ensure agent.unique_code is used for deletion if that's what the backend expects */}
-                  <IconButton onClick={() => handleDelete(agent.unique_code)} aria-label="delete agent"> {/* Use unique_code for delete */}
+                  {/* Pass the agent_id for deletion */}
+                  <IconButton onClick={() => handleDelete(agent.agent_id)} aria-label="delete agent"> {/* Use agent.agent_id for delete */}
                     <Delete />
                   </IconButton>
                 </Box>
@@ -200,10 +203,11 @@ const DashboardPage = () => {
       )}
 
       {/* Edit Agent Dialog */}
-      {/* Ensure selectedAgent is used to pre-fill dialog and for update API call */}
-      {selectedAgent && ( // Only render dialog if an agent is selected
+      {/* Only render dialog if an agent is selected to prevent errors */}
+      {selectedAgent && (
           <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-            <DialogTitle>Edit Agent URLs: {selectedAgent?.agent_name}</DialogTitle> {/* Show agent name */}
+            {/* Use optional chaining (?) in case selectedAgent is null briefly */}
+            <DialogTitle>Edit Agent URLs: {selectedAgent?.agent_name}</DialogTitle>
             <DialogContent>
               <TextField
                 label="URLs"
