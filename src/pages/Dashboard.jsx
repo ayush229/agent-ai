@@ -61,19 +61,20 @@ const DashboardPage = () => {
   };
 
   const handleEdit = (agent) => {
+    // Ensure agent object includes 'urls' as an array and 'unique_code' as agent_id for dialog logic
     setSelectedAgent(agent);
-    // Assuming agent object includes 'urls' as an array
-    setNewUrls(agent.urls.join(","));
+    // Assuming agent.urls is an array for joining
+    setNewUrls(Array.isArray(agent.urls) ? agent.urls.join(",") : "");
     setOpenDialog(true);
   };
 
-  const handleDelete = async (agentId) => {
+  const handleDelete = async (agentUniqueCode) => {
     // Confirmation dialog before deleting is recommended
     if (window.confirm("Are you sure you want to delete this agent?")) {
         try {
           // Assuming your backend delete endpoint uses the unique_code as the identifier
           await axios.delete(
-            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentId}`, // <-- Check your backend route, might be /agent/{unique_code}
+            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentUniqueCode}`, // <-- Use unique_code for DELETE request
             {
               headers: {
                 Authorization: getAuthHeader(),
@@ -81,6 +82,7 @@ const DashboardPage = () => {
             }
           );
           fetchAgents(); // Refresh the list after deletion
+          // Optionally show a success message
         } catch (error) {
           console.error("Error deleting agent:", error);
           // Optionally show an error message to the user
@@ -97,7 +99,7 @@ const DashboardPage = () => {
       const response = await axios.put(
         `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.unique_code}`, // <-- Use unique_code for PUT request
         {
-          url: newUrls, // Backend expects urls string
+          url: newUrls, // Backend expects urls string (comma-separated)
         },
         {
           headers: {
@@ -132,15 +134,20 @@ const DashboardPage = () => {
       <Typography variant="h4" gutterBottom>
         Agent Dashboard
       </Typography>
-      <Box mb={4}> {/* Increased margin for better spacing */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/create")}
-        >
-          Create New Agent
-        </Button>
-      </Box>
+
+      {/* Conditionally render the Create New Agent button */}
+      {agents.length === 0 && !loading && ( // <-- Only show if no agents AND not loading
+        <Box mb={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/create")}
+          >
+            Create New Agent
+          </Button>
+        </Box>
+      )}
+
       {loading ? (
         <CircularProgress />
       ) : (
@@ -194,29 +201,32 @@ const DashboardPage = () => {
 
       {/* Edit Agent Dialog */}
       {/* Ensure selectedAgent is used to pre-fill dialog and for update API call */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Edit Agent URLs: {selectedAgent?.agent_name}</DialogTitle> {/* Show agent name */}
-        <DialogContent>
-          <TextField
-            label="URLs"
-            fullWidth
-            value={newUrls}
-            onChange={(e) => setNewUrls(e.target.value)}
-            helperText="Comma-separated URLs"
-            margin="normal"
-            multiline // Allow multiple lines
-            rows={4} // Set initial number of rows
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleUpdateAgent} color="primary" disabled={!selectedAgent}> {/* Disable if no agent selected */}
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {selectedAgent && ( // Only render dialog if an agent is selected
+          <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+            <DialogTitle>Edit Agent URLs: {selectedAgent?.agent_name}</DialogTitle> {/* Show agent name */}
+            <DialogContent>
+              <TextField
+                label="URLs"
+                fullWidth
+                value={newUrls}
+                onChange={(e) => setNewUrls(e.target.value)}
+                helperText="Comma-separated URLs"
+                margin="normal"
+                multiline // Allow multiple lines
+                rows={4} // Set initial number of rows
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenDialog(false)} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateAgent} color="primary" disabled={!selectedAgent}> {/* Disable if no agent selected */}
+                Save
+              </Button>
+            </DialogActions>
+          </Dialog>
+      )}
+
 
       {/* Snackbar for Copy Confirmation */}
       <Snackbar
