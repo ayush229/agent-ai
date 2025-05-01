@@ -16,11 +16,14 @@ import {
   DialogTitle,
   TextField,
   CircularProgress,
+  Snackbar, // Import Snackbar for copy confirmation
+  Alert, // Import Alert for Snackbar content
 } from "@mui/material";
-import { Delete, Edit } from "@mui/icons-material";
+import { Delete, Edit, ContentCopy as ContentCopyIcon } from "@mui/icons-material"; // Import ContentCopy icon
 import { getAuthHeader } from "../utils/auth";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { CopyToClipboard } from 'react-copy-to-clipboard'; // Import CopyToClipboard
 
 const DashboardPage = () => {
   const [agents, setAgents] = useState([]);
@@ -28,6 +31,8 @@ const DashboardPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [newUrls, setNewUrls] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // State for Snackbar message
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +42,7 @@ const DashboardPage = () => {
   const fetchAgents = async () => {
     setLoading(true);
     try {
+      // Ensure your backend's /agents endpoint returns the unique_code
       const response = await axios.get(
         "https://web-scraper-api-production-fbd4.up.railway.app/agents",
         {
@@ -45,41 +51,53 @@ const DashboardPage = () => {
           },
         }
       );
+      // Assuming response.data.agents contains objects with unique_code, agent_name, urls
       setAgents(response.data.agents);
     } catch (error) {
       console.error("Error fetching agents:", error);
+      // Optionally show an error message to the user
     }
     setLoading(false);
   };
 
   const handleEdit = (agent) => {
     setSelectedAgent(agent);
+    // Assuming agent object includes 'urls' as an array
     setNewUrls(agent.urls.join(","));
     setOpenDialog(true);
   };
 
   const handleDelete = async (agentId) => {
-    try {
-      await axios.delete(
-        `https://web-scraper-api-production-fbd4.up.railway.app/agents/${agentId}`,
-        {
-          headers: {
-            Authorization: getAuthHeader(),
-          },
+    // Confirmation dialog before deleting is recommended
+    if (window.confirm("Are you sure you want to delete this agent?")) {
+        try {
+          // Assuming your backend delete endpoint uses the unique_code as the identifier
+          await axios.delete(
+            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentId}`, // <-- Check your backend route, might be /agent/{unique_code}
+            {
+              headers: {
+                Authorization: getAuthHeader(),
+              },
+            }
+          );
+          fetchAgents(); // Refresh the list after deletion
+        } catch (error) {
+          console.error("Error deleting agent:", error);
+          // Optionally show an error message to the user
         }
-      );
-      fetchAgents();
-    } catch (error) {
-      console.error("Error deleting agent:", error);
     }
   };
 
+
   const handleUpdateAgent = async () => {
+    if (!selectedAgent) return; // Should not happen if dialog is open correctly
+
     try {
+      // Assuming your backend update endpoint uses the unique_code and expects urls string
       const response = await axios.put(
-        `https://web-scraper-api-production-fbd4.up.railway.app/agents/${selectedAgent.agent_id}`,
+        `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.unique_code}`, // <-- Use unique_code for PUT request
         {
-          url: newUrls,
+          url: newUrls, // Backend expects urls string
         },
         {
           headers: {
@@ -88,18 +106,33 @@ const DashboardPage = () => {
         }
       );
       setOpenDialog(false);
-      fetchAgents();
+      fetchAgents(); // Refresh the list after update
+      // Optionally show a success message
     } catch (error) {
       console.error("Error updating agent:", error);
+      // Optionally show an error message to the user
     }
   };
+
+  const handleCopySuccess = () => {
+    setSnackbarMessage("Unique code copied to clipboard!");
+    setSnackbarOpen(true);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
 
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
         Agent Dashboard
       </Typography>
-      <Box mb={2}>
+      <Box mb={4}> {/* Increased margin for better spacing */}
         <Button
           variant="contained"
           color="primary"
@@ -111,23 +144,45 @@ const DashboardPage = () => {
       {loading ? (
         <CircularProgress />
       ) : (
-        <Grid container spacing={2}>
+        <Grid container spacing={3}> {/* Increased spacing */}
           {agents.map((agent) => (
-            <Grid item xs={12} sm={6} md={4} key={agent.agent_id}>
-              <Paper elevation={3} sx={{ p: 2 }}>
-                <Typography variant="h6">{agent.agent_name}</Typography>
-                <List>
-                  {agent.urls.map((url, index) => (
-                    <ListItem key={index}>
-                      <ListItemText primary={url} />
+            // Make sure your backend returns agent objects with a 'unique_code' property
+            <Grid item xs={12} sm={6} md={4} key={agent.unique_code}> {/* Use unique_code as key */}
+              <Paper elevation={3} sx={{ p: 3 }}> {/* Increased padding */}
+                <Typography variant="h6" gutterBottom>{agent.agent_name}</Typography> {/* Added bottom margin */}
+
+                {/* Display Unique Code with Copy Button */}
+                <Box display="flex" alignItems="center" mb={2}> {/* Added bottom margin */}
+                    <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>
+                        Code:
+                    </Typography>
+                    <Typography variant="body2" sx={{ flexGrow: 1, overflowWrap: 'break-word' }}>
+                         {agent.unique_code} {/* Display the unique code */}
+                    </Typography>
+                    <CopyToClipboard text={agent.unique_code} onCopy={handleCopySuccess}>
+                        <IconButton size="small" aria-label="copy unique code">
+                            <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                    </CopyToClipboard>
+                </Box>
+
+
+                <Typography variant="subtitle2" gutterBottom>URLs:</Typography> {/* Label for URLs */}
+                <List dense={true}> {/* Make list dense */}
+                  {/* Ensure agent.urls is an array */}
+                  {Array.isArray(agent.urls) && agent.urls.map((url, index) => (
+                    <ListItem key={index} disableGutters={true} sx={{ py: 0 }}> {/* Remove padding */}
+                      <ListItemText primary={url} primaryTypographyProps={{ variant: 'body2', overflowWrap: 'break-word' }} /> {/* Make text smaller and wrap */}
                     </ListItem>
                   ))}
                 </List>
-                <Box display="flex" justifyContent="space-between">
-                  <IconButton onClick={() => handleEdit(agent)}>
+
+                <Box display="flex" justifyContent="flex-end" mt={2}> {/* Align buttons to the right, add top margin */}
+                  <IconButton onClick={() => handleEdit(agent)} aria-label="edit agent">
                     <Edit />
                   </IconButton>
-                  <IconButton onClick={() => handleDelete(agent.agent_id)}>
+                  {/* Ensure agent.unique_code is used for deletion if that's what the backend expects */}
+                  <IconButton onClick={() => handleDelete(agent.unique_code)} aria-label="delete agent"> {/* Use unique_code for delete */}
                     <Delete />
                   </IconButton>
                 </Box>
@@ -138,8 +193,9 @@ const DashboardPage = () => {
       )}
 
       {/* Edit Agent Dialog */}
+      {/* Ensure selectedAgent is used to pre-fill dialog and for update API call */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Edit Agent URLs</DialogTitle>
+        <DialogTitle>Edit Agent URLs: {selectedAgent?.agent_name}</DialogTitle> {/* Show agent name */}
         <DialogContent>
           <TextField
             label="URLs"
@@ -148,17 +204,32 @@ const DashboardPage = () => {
             onChange={(e) => setNewUrls(e.target.value)}
             helperText="Comma-separated URLs"
             margin="normal"
+            multiline // Allow multiple lines
+            rows={4} // Set initial number of rows
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleUpdateAgent} color="primary">
+          <Button onClick={handleUpdateAgent} color="primary" disabled={!selectedAgent}> {/* Disable if no agent selected */}
             Save
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for Copy Confirmation */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000} // Hide after 3 seconds
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Position at bottom center
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
     </Container>
   );
 };
