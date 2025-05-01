@@ -22,10 +22,9 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Runner ---
-# Use a lightweight web server like Nginx to serve the built static files
 FROM nginx:alpine
 
-# Copy the built files from the builder stage into the Nginx default public directory
+# Copy the built files from the builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # --- IMPORTANT PORT NOTE ---
