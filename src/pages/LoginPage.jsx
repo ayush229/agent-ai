@@ -18,20 +18,24 @@ const LoginPage = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
+    // Basic frontend check (backend also verifies)
+    // In a real application, this check should happen on the backend after sending credentials securely.
     if (username === "ayush1" && password === "blackbox098") {
-      // Changed the localStorage key from "auth" to "token"
+      // Store base64 encoded credentials as "token" for Basic Auth header
+      // This key ("token") must match the key used in src/utils/auth.js
       localStorage.setItem("token", btoa(`${username}:${password}`));
-      navigate("/dashboard");
+      navigate("/dashboard"); // Redirect to dashboard on successful login
     } else {
-      setError("Invalid credentials");
+      setError("Invalid credentials"); // Show error message for invalid login
     }
   };
 
   return (
     <Container maxWidth="xs">
       <Paper elevation={3} sx={{ mt: 12, p: 4 }}>
+        {/* Updated Heading Text as requested */}
         <Typography variant="h5" align="center" gutterBottom>
-          Web Scraper Login
+          AI Agent Admin Login {/* Changed the text here */}
         </Typography>
         <form onSubmit={handleLogin}>
           <TextField
