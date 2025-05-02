@@ -5,9 +5,9 @@ const BASE_URL = "https://web-scraper-api-production-fbd4.up.railway.app";
 
 // 1. Get All Agents
 export const getAgents = async () => {
-  const res = await axios.get(`${BASE_URL}/agents`, {
+  const res = await axios.get(${BASE_URL}/agents, {
     headers: {
-      Authorization: getAuthHeader(),
+      ...getAuthHeader(),
     },
   });
   return res.data;
@@ -16,11 +16,11 @@ export const getAgents = async () => {
 // 2. Create (Scrape and Store) Agent
 export const createAgent = async (agent_name, url) => {
   const res = await axios.post(
-    `${BASE_URL}/scrape_and_store`,
+    ${BASE_URL}/scrape_and_store,
     { agent_name, url },
     {
       headers: {
-        Authorization: getAuthHeader(),
+        ...getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -31,11 +31,11 @@ export const createAgent = async (agent_name, url) => {
 // 3. Ask Agent
 export const askAgent = async (unique_code, user_query) => {
   const res = await axios.post(
-    `${BASE_URL}/ask_stored`,
+    ${BASE_URL}/ask_stored,
     { unique_code, user_query },
     {
       headers: {
-        Authorization: getAuthHeader(),
+        ...getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -46,11 +46,11 @@ export const askAgent = async (unique_code, user_query) => {
 // 4. Update Agent
 export const updateAgent = async (unique_code, url) => {
   const res = await axios.put(
-    `${BASE_URL}/agent/${unique_code}`,
+    ${BASE_URL}/agents/${unique_code},
     { url },
     {
       headers: {
-        Authorization: getAuthHeader(),
+        ...getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -60,9 +60,9 @@ export const updateAgent = async (unique_code, url) => {
 
 // 5. Delete Agent
 export const deleteAgent = async (unique_code) => {
-  const res = await axios.delete(`${BASE_URL}/agent/${unique_code}`, {
+  const res = await axios.delete(${BASE_URL}/agents/${unique_code}, {
     headers: {
-      Authorization: getAuthHeader(),
+      ...getAuthHeader(),
     },
   });
   return res.data;
