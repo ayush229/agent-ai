@@ -6,10 +6,9 @@ COPY package*.json ./
 # Use npm ci for deterministic installs based on package-lock.json
 # If you don't have package-lock.json, use 'npm install'
 # If you have peer dependency issues, use 'npm install --legacy-peer-deps'
-RUN npm ci 
+RUN npm install
 
 COPY . .
-# Ensure your build script in package.json outputs to a 'build' directory
 RUN npm run build
 
 # --- Stage 2: Runner ---
