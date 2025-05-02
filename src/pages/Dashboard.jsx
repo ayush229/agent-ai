@@ -24,10 +24,13 @@ import {
   Edit,
   ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
-import { getAuthHeader } from "../utils/auth";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import {
+  getAgents,
+  updateAgent,
+  deleteAgent,
+} from "../api/Api"; // Centralized API imports
 
 const DashboardPage = () => {
   const [agents, setAgents] = useState([]);
@@ -46,15 +49,8 @@ const DashboardPage = () => {
   const fetchAgents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://web-scraper-api-production-fbd4.up.railway.app/agents",
-        {
-          headers: {
-            Authorization: getAuthHeader(),
-          },
-        }
-      );
-      setAgents(response.data.agents);
+      const data = await getAgents();
+      setAgents(data.agents || []);
     } catch (error) {
       console.error("Error fetching agents:", error);
     }
@@ -70,14 +66,7 @@ const DashboardPage = () => {
   const handleDelete = async (agentIdToDelete) => {
     if (window.confirm("Are you sure you want to delete this agent?")) {
       try {
-        await axios.delete(
-          `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentIdToDelete}`,
-          {
-            headers: {
-              Authorization: getAuthHeader(),
-            },
-          }
-        );
+        await deleteAgent(agentIdToDelete);
         fetchAgents();
       } catch (error) {
         console.error("Error deleting agent:", error);
@@ -89,17 +78,7 @@ const DashboardPage = () => {
     if (!selectedAgent) return;
 
     try {
-      await axios.put(
-        `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.agent_id}`,
-        {
-          url: newUrls,
-        },
-        {
-          headers: {
-            Authorization: getAuthHeader(),
-          },
-        }
-      );
+      await updateAgent(selectedAgent.agent_id, newUrls);
       setOpenDialog(false);
       fetchAgents();
     } catch (error) {
