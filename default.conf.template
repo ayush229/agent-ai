@@ -1,0 +1,30 @@
+server {
+    listen ${LISTEN_PORT};
+    server_name _;
+
+    location / {
+        root    /usr/share/nginx/html;
+        index   index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Optional: Silence access logs for favicon
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    # Optional: Silence access logs for robots.txt
+    location = /robots.txt {
+        log_not_found off;
+        access_log off;
+    }
+
+    # Optional: Add security headers (example)
+    # add_header X-Frame-Options "SAMEORIGIN" always;
+    # add_header X-XSS-Protection "1; mode=block" always;
+    # add_header X-Content-Type-Options "nosniff" always;
+    # add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self';" always;
+    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+}
