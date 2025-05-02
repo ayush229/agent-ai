@@ -7,7 +7,7 @@ const BASE_URL = "https://web-scraper-api-production-fbd4.up.railway.app";
 export const getAgents = async () => {
   const res = await axios.get(`${BASE_URL}/agents`, {
     headers: {
-      ...getAuthHeader(),
+      Authorization: getAuthHeader(),
     },
   });
   return res.data;
@@ -20,7 +20,7 @@ export const createAgent = async (agent_name, url) => {
     { agent_name, url },
     {
       headers: {
-        ...getAuthHeader(),
+        Authorization: getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -35,7 +35,7 @@ export const askAgent = async (unique_code, user_query) => {
     { unique_code, user_query },
     {
       headers: {
-        ...getAuthHeader(),
+        Authorization: getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -46,11 +46,11 @@ export const askAgent = async (unique_code, user_query) => {
 // 4. Update Agent
 export const updateAgent = async (unique_code, url) => {
   const res = await axios.put(
-    `${BASE_URL}/agents/${unique_code}`,
+    `${BASE_URL}/agent/${unique_code}`,
     { url },
     {
       headers: {
-        ...getAuthHeader(),
+        Authorization: getAuthHeader(),
         "Content-Type": "application/json",
       },
     }
@@ -60,9 +60,9 @@ export const updateAgent = async (unique_code, url) => {
 
 // 5. Delete Agent
 export const deleteAgent = async (unique_code) => {
-  const res = await axios.delete(`${BASE_URL}/agents/${unique_code}`, {
+  const res = await axios.delete(`${BASE_URL}/agent/${unique_code}`, {
     headers: {
-      ...getAuthHeader(),
+      Authorization: getAuthHeader(),
     },
   });
   return res.data;
