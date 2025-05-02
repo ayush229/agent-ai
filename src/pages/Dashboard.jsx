@@ -74,7 +74,7 @@ const DashboardPage = () => {
         try {
           // Assuming your backend delete endpoint uses the agent_id as the identifier
           await axios.delete(
-            `https://web-scraper-api-production-fbd4.up.railway.app/agent/${agentIdToDelete}`, // Use the agentId (unique code) for DELETE request
+            `https://web-scraper-api-production-fbd4.up.railway.app/agents/${agentIdToDelete}`, // Use the agentId (unique code) for DELETE request
             {
               headers: {
                 Authorization: getAuthHeader(),
@@ -97,7 +97,7 @@ const DashboardPage = () => {
     try {
       // Assuming your backend update endpoint uses the agent_id and expects urls string
       const response = await axios.put(
-        `https://web-scraper-api-production-fbd4.up.railway.app/agent/${selectedAgent.agent_id}`, // <--- Use selectedAgent.agent_id for PUT request
+        `https://web-scraper-api-production-fbd4.up.railway.app/agents/${selectedAgent.agent_id}`, // <--- Use selectedAgent.agent_id for PUT request
         {
           url: newUrls, // Backend expects urls string (comma-separated)
         },
