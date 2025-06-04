@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getAuthHeader } from "../auth";
 
-const BASE_URL = "https://web-scraper-api-production-ec96.up.railway.app";
+const BASE_URL = "https://web-scrap-scrapy-production.up.railway.app";
 
 // 1. Get All Agents
 export const getAgents = async () => {
