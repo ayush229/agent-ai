@@ -30,7 +30,7 @@ const CreateAgentPage = () => {
 
     try {
       const response = await axios.post(
-        "https://web-scraper-api-production-ec96.up.railway.app/scrape_and_store",
+        "https://web-scrap-scrapy-production.up.railway.app/scrape_and_store",
         {
           agent_name: agentName,
           url: urls,
