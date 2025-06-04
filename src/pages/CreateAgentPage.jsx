@@ -33,7 +33,7 @@ const CreateAgentPage = () => {
         "https://web-scrap-scrapy-production.up.railway.app/scrape_and_store",
         {
           agent_name: agentName,
-          urls: urls,
+          url: urls,
         },
         {
           headers: {
