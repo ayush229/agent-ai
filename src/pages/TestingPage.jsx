@@ -26,7 +26,7 @@ const TestingPage = () => {
     const fetchAgents = async () => {
       try {
         const response = await axios.get(
-          "https://web-scraper-api-production-ec96.up.railway.app/agents",
+          "https://web-scrap-scrapy-production.up.railway.app/agents",
           {
             headers: {
               Authorization: getAuthHeader(),
@@ -54,7 +54,7 @@ const TestingPage = () => {
 
     try {
       const response = await axios.post(
-        "https://web-scraper-api-production-ec96.up.railway.app/ask_stored",
+        "https://web-scrap-scrapy-production.up.railway.app/ask_stored",
         {
           unique_code: selectedAgent,
           user_query: userQuery,
